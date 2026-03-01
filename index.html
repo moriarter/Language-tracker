@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Language Exposure Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<h2>Language Exposure Tracker</h2>
+
+<div id="auth">
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="signUp()">Sign Up</button>
+  <button onclick="signIn()">Login</button>
+</div>
+
+<hr>
+
+<div id="app" style="display:none;">
+  <h3>Add Session</h3>
+
+  <input type="text" id="language" placeholder="Language (e.g. English)">
+  
+  <select id="skill">
+    <option>Listening</option>
+    <option>Speaking</option>
+    <option>Reading</option>
+    <option>Writing</option>
+    <option>Repeating Words</option>
+  </select>
+
+  <input type="number" id="minutes" placeholder="Minutes">
+  <input type="date" id="date">
+  
+  <button onclick="addSession()">Add</button>
+
+  <h3>Total Minutes: <span id="total">0</span></h3>
+</div>
+
+<script>
+  const supabase = window.supabase.createClient(
+    "https://gzmydyfegoryivnhqgph.supabase.co",
+    "sb_publishable_Iw0T07QnZHxvk_7_EoVMvA_e0hkVCJy"
+  );
+
+  async function signUp() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    await supabase.auth.signUp({ email, password });
+    alert("Check your email to confirm signup.");
+  }
+
+  async function signIn() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    document.getElementById('auth').style.display = "none";
+    document.getElementById('app').style.display = "block";
+
+    loadTotal();
+  }
+
+  async function addSession() {
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData.user;
+
+    const language = document.getElementById('language').value;
+    const skill = document.getElementById('skill').value;
+    const minutes = parseInt(document.getElementById('minutes').value);
+    const date = document.getElementById('date').value;
+
+    await supabase.from('sessions').insert({
+      user_id: user.id,
+      language,
+      skill,
+      minutes,
+      session_date: date
+    });
+
+    loadTotal();
+  }
+
+  async function loadTotal() {
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData.user;
+
+    const { data } = await supabase
+      .from('sessions')
+      .select('minutes')
+      .eq('user_id', user.id);
+
+    const total = data.reduce((sum, row) => sum + row.minutes, 0);
+    document.getElementById('total').innerText = total;
+  }
+</script>
+
+</body>
+</html>
