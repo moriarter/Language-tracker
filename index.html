@@ -73,24 +73,35 @@
   }
 
   async function addSession() {
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData.user;
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
 
-    const language = document.getElementById('language').value;
-    const skill = document.getElementById('skill').value;
-    const minutes = parseInt(document.getElementById('minutes').value);
-    const date = document.getElementById('date').value;
-
-    await supabase.from('sessions').insert({
-      user_id: user.id,
-      language,
-      skill,
-      minutes,
-      session_date: date
-    });
-
-    loadTotal();
+  if (!user) {
+    alert("User not logged in");
+    return;
   }
+
+  const language = document.getElementById('language').value;
+  const skill = document.getElementById('skill').value;
+  const minutes = parseInt(document.getElementById('minutes').value);
+  const date = document.getElementById('date').value;
+
+  const { error } = await supabase.from('sessions').insert({
+    user_id: user.id,
+    language,
+    skill,
+    minutes,
+    session_date: date
+  });
+
+  if (error) {
+    alert(error.message);
+  } else {
+    alert("Session added!");
+  }
+
+  loadTotal();
+}
 
   async function loadTotal() {
     const { data: userData } = await supabase.auth.getUser();
