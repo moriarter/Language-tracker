@@ -48,6 +48,13 @@
   const supabase = window.supabase.createClient(
     "https://gzmydyfegoryivnhqgph.supabase.co",
     "sb_publishable_Iw0T07QnZHxvk_7_EoVMvA_e0hkVCJy"
+   {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+   }
   );
 
   // Debug function
@@ -164,6 +171,19 @@
     const total = data.reduce((sum, row) => sum + row.minutes, 0);
     document.getElementById('total').innerText = total;
   }
+
+    async function checkUser() {
+  const { data } = await supabase.auth.getUser();
+
+  if (data.user) {
+    document.getElementById("auth").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    document.getElementById("debug").innerText =
+      "Already logged in: " + data.user.email;
+  }
+}
+
+checkUser();
 
   // --- Attach button events AFTER page loads ---
   document.getElementById('signupBtn').onclick = signUp;
