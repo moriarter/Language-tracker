@@ -7,7 +7,7 @@
 </head>
 <body>
 
-<h2>Language Exposure T-Tracker</h2>
+<h2>Language Exposure T-2Tracker</h2>
 
 <div id="debug" style="color:red; margin-bottom:10px;">hello</div>
 
@@ -92,6 +92,8 @@
     debug("Add button clicked");
 
     const { data: userData } = await supabase.auth.getUser();
+document.getElementById('debug').innerText =
+  "User: " + (userData.user ? userData.user.id : "NOT LOGGED IN");
     const user = userData.user;
 
     if (!user) {
