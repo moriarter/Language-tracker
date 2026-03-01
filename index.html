@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Language Exposure Tracker</title>
+  <!-- Supabase JS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
 <h2>Language Exposure Tracker</h2>
 
+<!-- Authentication -->
 <div id="auth">
   <input type="email" id="email" placeholder="Email">
   <input type="password" id="password" placeholder="Password">
@@ -17,6 +20,7 @@
 
 <hr>
 
+<!-- App Dashboard -->
 <div id="app" style="display:none;">
   <h3>Add Session</h3>
 
@@ -39,17 +43,23 @@
 </div>
 
 <script>
+  // 🔑 Replace with your own Supabase keys
   const supabase = window.supabase.createClient(
-    "https://gzmydyfegoryivnhqgph.supabase.co",
-    "sb_publishable_Iw0T07QnZHxvk_7_EoVMvA_e0hkVCJy"
+    "https://YOUR_PROJECT_ID.supabase.co",
+    "YOUR_ANON_PUBLIC_KEY"
   );
 
+  // --- Auth Functions ---
   async function signUp() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
 
-    await supabase.auth.signUp({ email, password });
-    alert("Check your email to confirm signup.");
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      alert("Signup error: " + error.message);
+    } else {
+      alert("Check your email to confirm signup.");
+    }
   }
 
   async function signIn() {
@@ -62,55 +72,69 @@
     });
 
     if (error) {
-      alert(error.message);
+      alert("Login error: " + error.message);
       return;
     }
 
+    // Hide login, show app
     document.getElementById('auth').style.display = "none";
     document.getElementById('app').style.display = "block";
 
     loadTotal();
   }
 
+  // --- Add Session ---
   async function addSession() {
-  const { data: userData } = await supabase.auth.getUser();
-  const user = userData.user;
-
-  if (!user) {
-    alert("User not logged in");
-    return;
-  }
-
-  const language = document.getElementById('language').value;
-  const skill = document.getElementById('skill').value;
-  const minutes = parseInt(document.getElementById('minutes').value);
-  const date = document.getElementById('date').value;
-
-  const { error } = await supabase.from('sessions').insert({
-    user_id: user.id,
-    language,
-    skill,
-    minutes,
-    session_date: date
-  });
-
-  if (error) {
-    alert(error.message);
-  } else {
-    alert("Session added!");
-  }
-
-  loadTotal();
-}
-
-  async function loadTotal() {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData.user;
 
-    const { data } = await supabase
+    if (!user) {
+      alert("You are not logged in.");
+      return;
+    }
+
+    const language = document.getElementById('language').value;
+    const skill = document.getElementById('skill').value;
+    const minutes = parseInt(document.getElementById('minutes').value);
+    const date = document.getElementById('date').value;
+
+    if (!language || !skill || !minutes || !date) {
+      alert("Please fill all fields.");
+      return;
+    }
+
+    const { error } = await supabase.from('sessions').insert({
+      user_id: user.id,
+      language,
+      skill,
+      minutes,
+      session_date: date
+    });
+
+    if (error) {
+      alert("Insert error: " + error.message);
+    } else {
+      alert("Session added!");
+    }
+
+    loadTotal();
+  }
+
+  // --- Load Total Minutes ---
+  async function loadTotal() {
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData.user;
+    if (!user) return;
+
+    const { data, error } = await supabase
       .from('sessions')
       .select('minutes')
       .eq('user_id', user.id);
+
+    if (error) {
+      console.log("Load error:", error.message);
+      return;
+    }
 
     const total = data.reduce((sum, row) => sum + row.minutes, 0);
     document.getElementById('total').innerText = total;
