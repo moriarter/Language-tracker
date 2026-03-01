@@ -2,23 +2,23 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Language Exposure Tracker</title>
-  <!-- Supabase JS CDN -->
+  <title>Language Tracker</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<h2>Language Exposure T-2Tracker</h2>
+<h2>Language Exposure Tracker</h2>
+
+<div id="debug" style="color:red; margin-bottom:10px;"></div>
 
 <!-- Authentication -->
 <div id="auth">
   <input type="email" id="email" placeholder="Email">
   <input type="password" id="password" placeholder="Password">
-  <button onclick="signUp()">Sign Up</button>
-  <button onclick="signIn()">Login</button>
+  <button id="signupBtn">Sign Up</button>
+  <button id="loginBtn">Login</button>
 </div>
 
-  <div id="debug" style="color:red;">hello world</div>
 <hr>
 
 <!-- App Dashboard -->
@@ -38,63 +38,64 @@
   <input type="number" id="minutes" placeholder="Minutes">
   <input type="date" id="date">
   
-  <button onclick="addSession()">Add</button>
+  <button id="addBtn">Add</button>
 
   <h3>Total Minutes: <span id="total">0</span></h3>
 </div>
 
 <script>
-  // 🔑 Replace with your own Supabase keys
+  // 🔑 Replace with your Supabase keys
   const supabase = window.supabase.createClient(
     "https://gzmydyfegoryivnhqgph.supabase.co",
     "sb_publishable_Iw0T07QnZHxvk_7_EoVMvA_e0hkVCJy"
   );
 
+  // Debug function
+  function debug(msg) {
+    document.getElementById('debug').innerText = msg;
+  }
+
   // --- Auth Functions ---
   async function signUp() {
+    debug("SignUp clicked");
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
 
     const { error } = await supabase.auth.signUp({ email, password });
-    if (error) {
-      alert("Signup error: " + error.message);
-    } else {
-      alert("Check your email to confirm signup.");
-    }
+    if (error) debug("Signup error: " + error.message);
+    else debug("Check your email to confirm signup.");
   }
 
   async function signIn() {
-  alert("Login clicked"); // << debug
-  document.getElementById('debug').innerText = "Login clicked!";
-    
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
+    debug("Login clicked");
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  if (error) {
-    alert("Login error: " + error.message);
-    return;
+    if (error) {
+      debug("Login error: " + error.message);
+      return;
+    }
+
+    debug("Login success!");
+    document.getElementById('auth').style.display = "none";
+    document.getElementById('app').style.display = "block";
+
+    loadTotal();
   }
 
-  alert("Login success!"); // << debug
-
-  document.getElementById('auth').style.display = "none";
-  document.getElementById('app').style.display = "block";
-
-  loadTotal();
-}
-
-  // --- Add Session ---
   async function addSession() {
+    debug("Add button clicked");
+
     const { data: userData } = await supabase.auth.getUser();
     const user = userData.user;
 
     if (!user) {
-      alert("You are not logged in.");
+      debug("You are not logged in.");
       return;
     }
 
@@ -104,7 +105,7 @@
     const date = document.getElementById('date').value;
 
     if (!language || !skill || !minutes || !date) {
-      alert("Please fill all fields.");
+      debug("Please fill all fields.");
       return;
     }
 
@@ -116,16 +117,12 @@
       session_date: date
     });
 
-    if (error) {
-      alert("Insert error: " + error.message);
-    } else {
-      alert("Session added!");
-    }
+    if (error) debug("Insert error: " + error.message);
+    else debug("Session added!");
 
     loadTotal();
   }
 
-  // --- Load Total Minutes ---
   async function loadTotal() {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData.user;
@@ -137,13 +134,19 @@
       .eq('user_id', user.id);
 
     if (error) {
-      console.log("Load error:", error.message);
+      debug("Load error: " + error.message);
       return;
     }
 
     const total = data.reduce((sum, row) => sum + row.minutes, 0);
     document.getElementById('total').innerText = total;
   }
+
+  // --- Attach button events AFTER page loads ---
+  document.getElementById('signupBtn').onclick = signUp;
+  document.getElementById('loginBtn').onclick = signIn;
+  document.getElementById('addBtn').onclick = addSession;
+
 </script>
 
 </body>
