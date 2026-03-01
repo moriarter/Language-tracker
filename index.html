@@ -89,41 +89,62 @@
   }
 
   async function addSession() {
-    debug("Add button clicked");
+  // Check logged in user
+  const { data: userData, error: userError } = await supabase.auth.getUser();
 
-    const { data: userData } = await supabase.auth.getUser();
-document.getElementById('debug').innerText =
-  "User: " + (userData.user ? userData.user.id : "NOT LOGGED IN");
-    const user = userData.user;
-
-    if (!user) {
-      debug("You are not logged in.");
-      return;
-    }
-
-    const language = document.getElementById('language').value;
-    const skill = document.getElementById('skill').value;
-    const minutes = parseInt(document.getElementById('minutes').value);
-    const date = document.getElementById('date').value;
-
-    if (!language || !skill || !minutes || !date) {
-      debug("Please fill all fields.");
-      return;
-    }
-
-    const { error } = await supabase.from('sessions').insert({
-      user_id: user.id,
-      language,
-      skill,
-      minutes,
-      session_date: date
-    });
-
-    if (error) debug("Insert error: " + error.message);
-    else debug("Session added!");
-
-    loadTotal();
+  if (userError) {
+    document.getElementById("debug").innerText =
+      "Auth error: " + userError.message;
+    return;
   }
+
+  const user = userData.user;
+
+  if (!user) {
+    document.getElementById("debug").innerText =
+      "NOT LOGGED IN";
+    return;
+  }
+
+  document.getElementById("debug").innerText =
+    "Logged in as: " + user.id;
+
+  // Get form values
+  const language = document.getElementById("language").value;
+  const skill = document.getElementById("skill").value;
+  const minutes = parseInt(document.getElementById("minutes").value);
+  const date = document.getElementById("date").value;
+
+  if (!language || !skill || !minutes || !date) {
+    document.getElementById("debug").innerText =
+      "Please fill all fields";
+    return;
+  }
+
+  // Insert into database
+  const { error } = await supabase
+    .from("sessions")
+    .insert([
+      {
+        user_id: user.id,
+        language: language,
+        skill: skill,
+        minutes: minutes,
+        session_date: date,
+      },
+    ]);
+
+  if (error) {
+    document.getElementById("debug").innerText =
+      "Insert error: " + error.message;
+    return;
+  }
+
+  document.getElementById("debug").innerText =
+    "Session added successfully!";
+
+  loadTotal();
+}
 
   async function loadTotal() {
     const { data: userData } = await supabase.auth.getUser();
