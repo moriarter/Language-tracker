@@ -8,7 +8,7 @@
 </head>
 <body>
 
-<h2>Language Exposure T-Tracker</h2>
+<h2>Language Exposure T-2Tracker</h2>
 
 <!-- Authentication -->
 <div id="auth">
@@ -18,6 +18,7 @@
   <button onclick="signIn()">Login</button>
 </div>
 
+  <div id="debug" style="color:red;"></div>
 <hr>
 
 <!-- App Dashboard -->
@@ -64,7 +65,8 @@
 
   async function signIn() {
   alert("Login clicked"); // << debug
-
+  document.getElementById('debug').innerText = "Login clicked!";
+    
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
 
