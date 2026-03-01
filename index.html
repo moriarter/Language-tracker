@@ -63,25 +63,28 @@
   }
 
   async function signIn() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+  alert("Login clicked"); // << debug
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
 
-    if (error) {
-      alert("Login error: " + error.message);
-      return;
-    }
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-    // Hide login, show app
-    document.getElementById('auth').style.display = "none";
-    document.getElementById('app').style.display = "block";
-
-    loadTotal();
+  if (error) {
+    alert("Login error: " + error.message);
+    return;
   }
+
+  alert("Login success!"); // << debug
+
+  document.getElementById('auth').style.display = "none";
+  document.getElementById('app').style.display = "block";
+
+  loadTotal();
+}
 
   // --- Add Session ---
   async function addSession() {
